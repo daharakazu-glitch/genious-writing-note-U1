@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Genius 2 Unit 1 Workbook</title>
+  
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // --- アイコンコンポーネント (Lucide icons の代替) ---
+    const IconBase = ({ children, size = 24, className = "" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        {children}
+      </svg>
+    );
+
+    const Volume2 = (props) => <IconBase {...props}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></IconBase>;
+    const CheckCircle = (props) => <IconBase {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></IconBase>;
+    const Eye = (props) => <IconBase {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></IconBase>;
+    const EyeOff = (props) => <IconBase {...props}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></IconBase>;
+    const Info = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></IconBase>;
+    const Menu = (props) => <IconBase {...props}><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></IconBase>;
+    const XIcon = (props) => <IconBase {...props}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></IconBase>;
+    const BookOpen = (props) => <IconBase {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconBase>;
+    const ChevronRight = (props) => <IconBase {...props}><polyline points="9 18 15 12 9 6"/></IconBase>;
+    const ListPlus = (props) => <IconBase {...props}><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></IconBase>;
+
+    // --- データ定義 ---
+    const quizData = {
+      A: {
+        title: "A. 次の日本語に対応する語句になるように（　）に英語１語を入れましょう。",
+        questions: [
+          { id: 1, ja: "街の中心に位置する", segments: [{ text: "be " }, { type: "input", answer: "located" }, { text: " in the " }, { type: "input", answer: "center" }, { text: " of the city" }], speech: "be located in the center of the city", explanation: "SVOで第3文型。in the beginningは副詞句。" },
+          { id: 2, ja: "重要文化財に興味がある", segments: [{ text: "be interested in " }, { type: "input", answer: "Important" }, { text: " " }, { type: "input", answer: "Cultural" }, { text: " " }, { type: "input", answer: "Properties" }], speech: "be interested in Important Cultural Properties", explanation: "Propertiesは複数形。" },
+          { id: 3, ja: "四方を海で囲まれた", segments: [{ text: "be " }, { type: "input", answer: "surrounded" }, { text: " by the sea on all sides" }], speech: "be surrounded by the sea on all sides", explanation: "四方はon all sides." },
+          { id: 4, ja: "とても景色の良い眺め", segments: [{ text: "great " }, { type: "input", answer: "scenic" }, { text: " views" }], speech: "great scenic views" },
+          { id: 5, ja: "ある特定の分野で成功したことで有名", segments: [{ text: "be " }, { type: "input", answer: "famous" }, { text: " for one's success in a particular field" }], speech: "be famous for one's success in a particular field", explanation: "forの後には理由が続く点に注意する。" },
+          { id: 6, ja: "息を飲むような景色の良い眺め", segments: [{ text: "a " }, { type: "input", answer: "breathtaking" }, { text: " " }, { type: "input", answer: "scenic" }, { text: " view" }], speech: "a breathtaking scenic view" },
+          { id: 7, ja: "イタリアの西部に（で）", segments: [{ text: "in the " }, { type: "input", answer: "western" }, { text: " " }, { type: "input", answer: "part" }, { text: " of Italy" }], speech: "in the western part of Italy", explanation: "westはWest Germanyのように境界が明確な場合に行い、境界が曖昧な場合はwesternを用いる。" },
+          { id: 8, ja: "探索すべき歴史的な場所", segments: [{ type: "input", answer: "historical" }, { text: " sites to explore" }], speech: "historical sites to explore", explanation: "historicalは「歴史の、歴史に関する」という意味。historic(歴史的な)との混同に注意する。" },
+          { id: 9, ja: "フランス人画家のミレーにちなんで名付けられた", segments: [{ text: "be " }, { type: "input", answer: "named" }, { text: " " }, { type: "input", answer: "after" }, { text: " Millet, a French painter" }], speech: "be named after Millet, a French painter", explanation: "afterを用いる点に注意する。" },
+          { id: 10, ja: "世界遺産に登録された", segments: [{ text: "be " }, { type: "input", answer: "designated", prefix: "d" }, { text: " as a World Heritage Site" }], speech: "be designated as a World Heritage Site" }
+        ]
+      },
+      B: {
+        title: "B. 下線部（このアプリでは直前の語句）が主語ならS、補語ならC、目的語ならO、修飾語（句）ならMと入力しましょう。",
+        questions: [
+          { id: 1, ja: "文の要素を答えましょう", segments: [{ text: "I (" }, { type: "input", answer: "S", width: "short", accept: ["s"] }, { text: ") have a plan (" }, { type: "input", answer: "O", width: "short", accept: ["o"] }, { text: ") to visit the entire country in the beginning. (" }, { type: "input", answer: "M", width: "short", accept: ["m"] }, { text: ")" }], speech: "I have a plan to visit the entire country in the beginning.", explanation: "SVOで第3文型。in the beginningは副詞句。" },
+          { id: 2, ja: "文の要素を答えましょう", segments: [{ text: "Fiji (" }, { type: "input", answer: "S", width: "short", accept: ["s"] }, { text: ") is a collection of islands (" }, { type: "input", answer: "C", width: "short", accept: ["c"] }, { text: ")." }], speech: "Fiji is a collection of islands.", explanation: "SVCで第2文型。a collection of islands は名詞句。" },
+          { id: 3, ja: "文の要素を答えましょう", segments: [{ text: "It (" }, { type: "input", answer: "S", width: "short", accept: ["s"] }, { text: ") is easier to travel to the other European countries (" }, { type: "input", answer: "M", width: "short", accept: ["m"] }, { text: ") from this place (" }, { type: "input", answer: "M", width: "short", accept: ["m"] }, { text: ")." }], speech: "It is easier to travel to the other European countries from this place.", explanation: "SVCで第2文型。to the other European countries と from this place は共に副詞句。" },
+          { id: 4, ja: "文の要素を答えましょう", segments: [{ text: "The Hawaiian islands (" }, { type: "input", answer: "S", width: "short", accept: ["s"] }, { text: ") are in the south-west of North America (" }, { type: "input", answer: "M", width: "short", accept: ["m"] }, { text: ")." }], speech: "The Hawaiian islands are in the south-west of North America.", explanation: "SVで第1文型。in the south-west of North Americaは副詞句。" }
+        ]
+      },
+      C: {
+        title: "C. 日本文の意味に合うように英文を完成させましょう。",
+        questions: [
+          { id: 1, ja: "アメリカでは壮大な景色の眺めを楽しむことができます。", segments: [{ type: "input", answer: "You", accept: ["We", "You", "They", "we", "you", "they"] }, { text: " can " }, { type: "input", answer: "enjoy" }, { text: " some great scenic views in America." }], speech: "You can enjoy some great scenic views in America.", explanation: "主語は一般の「人々」。You, We, Theyなどが使えます。" },
+          { id: 2, ja: "特別な地形のためにこの地域の気候は変化する。", segments: [{ text: "The " }, { type: "input", answer: "climate" }, { text: " inside the area " }, { type: "input", answer: "varies", accept: ["varies", "changes"] }, { text: " due to its specific landform." }], speech: "The climate inside the area varies due to its specific landform.", explanation: "varies, changes は共に自動詞。" },
+          { id: 3, ja: "世界には魅力的な島がたくさんあります。", segments: [{ type: "input", answer: "There", accept: ["There", "there"] }, { text: " " }, { type: "input", answer: "are" }, { text: " a number of attractive islands in the world." }], speech: "There are a number of attractive islands in the world.", explanation: "a number of attractive islandsに合わせてbe動詞はareになる。a number of~ 「多数の~」は複数扱い。" }
+        ]
+      },
+      D: {
+        title: "D. 日本文の意味を表すように、（　）内の語句を並べかえて英文を完成させましょう。",
+        questions: [
+          { id: 1, ja: "世界地図上でその国が巨大な猫のように見えるのが面白い。", segments: [{ text: "It is " }, { type: "input", answer: "interesting that the country looks like a large cat", width: "full" }, { text: " on the world map." }], choices: ["a large cat", "interesting", "like", "looks", "that", "the country"], speech: "It is interesting that the country looks like a large cat on the world map.", explanation: "形式主語itの文。that節が意味上の主語となる。" },
+          { id: 2, ja: "非常に多くの人が毎年その国を訪れます。", segments: [{ type: "input", answer: "A good number of people visit the country", width: "full" }, { text: " annually." }], choices: ["people", "a good number of", "the country", "visit"], speech: "A good number of people visit the country annually.", explanation: "visit は他動詞。" },
+          { id: 3, ja: "中国はその巨大な建造物でも有名です。", segments: [{ type: "input", answer: "China is also famous for its large structures", width: "full" }, { text: " in the world." }], choices: ["also", "China", "famous", "for", "is", "its large structures"], speech: "China is also famous for its large structures in the world.", explanation: "alsoの位置に注意する。alsoは一般動詞の前、be動詞や助動詞の後ろに置かれることが多い。" },
+          { id: 4, ja: "私はそこの人々の生活様式を体験したいです。", segments: [{ type: "input", answer: "I want to experience the living style of the people", width: "full" }, { text: "." }], choices: ["experience", "I", "the living style of", "the people", "to", "want"], speech: "I want to experience the living style of the people.", explanation: "experienceは「~を経験する」という意味の他動詞。" },
+          { id: 5, ja: "ギリシャはエーゲ海、地中海、イオニア海で囲まれている。", segments: [{ type: "input", answer: "Greece is surrounded by the Aegean Sea", width: "full" }, { text: ", the Mediterranean Sea, and the Ionian Sea." }], choices: ["by", "Greece", "is", "surrounded", "the Aegean Sea"], speech: "Greece is surrounded by the Aegean Sea, the Mediterranean Sea, and the Ionian Sea.", explanation: "教科書 p.138 参照。" },
+          { id: 6, ja: "世界には探究すべき新しい場所が多すぎる。", segments: [{ type: "input", answer: "There are too many new places in the world to explore", width: "full" }, { text: "." }], choices: ["are", "many", "new places in the world", "there", "to explore", "too"], speech: "There are too many new places in the world to explore.", explanation: "There are/is~構文。to exploreはplaces にかかっている。" }
+        ]
+      },
+      E: {
+        title: "E. 与えられた語句を使って、次の日本語を英語で表現しましょう。",
+        questions: [
+          { id: 1, ja: "ニュージーランドで素敵な体験をするでしょう。", hints: "(have, experience)", segments: [{ type: "input", answer: "You will have a great experience in New Zealand", accept: ["We will have a great experience in New Zealand", "You will have a nice experience in New Zealand", "We will have a nice experience in New Zealand", "You will have a wonderful experience in New Zealand", "We will have a wonderful experience in New Zealand", "you will have a great experience in new zealand"], width: "full" }], speech: "You will have a great experience in New Zealand.", explanation: "主語は語りかけている相手なのでYouを用いる。自分も含めることで親近感を持たせたければWeを用いてもよい。greatの他にnice, wonderfulも可。" },
+          { id: 2, ja: "バイエルンはその美しさという点で息を飲むほどです。", hints: "(Bavaria, in)", segments: [{ type: "input", answer: "Bavaria is breathtaking in its beauty", accept: ["bavaria is breathtaking in its beauty"], width: "full" }], speech: "Bavaria is breathtaking in its beauty.", explanation: "breathtakingを叙述用法で用いる場合,inを続けることで、どの点でbreathtakingなのかを表す。" },
+          { id: 3, ja: "ノルウェーの北部ではドライブ旅行で10日間過ごすことができる。", hints: "(road tripping, Norway)", segments: [{ type: "input", answer: "We can spend ten days in road tripping in the northern part of Norway", accept: ["We can spend ten days road tripping in the northern part of Norway", "we can spend ten days in road tripping in the northern part of norway"], width: "full" }], speech: "We can spend ten days in road tripping in the northern part of Norway.", explanation: "spend は SVO in [on] doingで「〈人が〉~するのに〈時間〉を費やす」 という意味。" },
+          { id: 4, ja: "イラン縦貫鉄道は2021年に世界遺産に登録されました。", hints: "(the Trans-Iranian Railway)", segments: [{ type: "input", answer: "The Trans-Iranian Railway was designated as a World Heritage Site in 2021", accept: ["the trans-iranian railway was designated as a world heritage site in 2021"], width: "full" }], speech: "The Trans-Iranian Railway was designated as a World Heritage Site in 2021.", explanation: "教科書p.138「場所」参照。" },
+          { id: 5, ja: "ミャンマーには探索すべき歴史的な場所がたくさんあります。", hints: "(Myanmar)", segments: [{ type: "input", answer: "There are many historical sites to explore in Myanmar", accept: ["there are many historical sites to explore in myanmar"], width: "full" }], speech: "There are many historical sites to explore in Myanmar.", explanation: "教科書p.138「場所」参照。" },
+          { id: 6, ja: "ここは年中頻繁に雨が降るので暑くて湿度も高い。", hints: "(year-around, frequent rainfall)", segments: [{ type: "input", answer: "It is hot and humid year-round with frequent rainfall here", accept: ["it is hot and humid year-round with frequent rainfall here", "It is hot and humid year-around with frequent rainfall here"], width: "full" }], speech: "It is hot and humid year-round with frequent rainfall here.", explanation: "気候に関する表現のため主語には非人称のitを用いる。「ここは」は主語にはならず副詞のhereを用いる点にも注意する。" }
+        ]
+      },
+      Adv_A: {
+        title: "Advanced A. 次の日本語の意味を表すように、それぞれ下の語（句）を並べかえて空所を補いましょう。",
+        questions: [
+          {
+            id: 1,
+            ja: "最良のユーモアのセンスのある人が集団で最も人気があるということが、よくある。",
+            choices: ["best", "sense", "person", "the", "with"],
+            segments: [
+              { text: "The " },
+              { type: "input", answer: "person with the best sense", width: "full" },
+              { text: " of humor is often the most popular person in a group." }
+            ],
+            speech: "The person with the best sense of humor is often the most popular person in a group.",
+            explanation: "withは「所有・所持」で「･･･を持っている」という意味。sense of ~は「~のセンス、感覚」。"
+          },
+          {
+            id: 2,
+            ja: "トシは時給1,500円でその店でアルバイトをしている。",
+            choices: ["is paid", "part-time", "per hour", "works"],
+            segments: [
+              { text: "Toshi " },
+              { type: "input", answer: "works part-time" },
+              { text: " at the store, and " },
+              { type: "input", answer: "is paid" },
+              { text: " 1,500 yen " },
+              { type: "input", answer: "per hour" },
+              { text: "." }
+            ],
+            speech: "Toshi works part-time at the store, and is paid 1,500 yen per hour.",
+            explanation: "part-timeは 「パートタイムで」という意味で副詞であることに注意する。"
+          },
+          {
+            id: 3,
+            ja: "私の大学のキャンパスは大きくて、毎日教室まで歩いて20分かかりました。",
+            choices: ["twenty", "me", "to", "for", "took", "minutes"],
+            segments: [
+              { text: "The campus of my university was so large that it " },
+              { type: "input", answer: "took twenty minutes for me to", width: "full" },
+              { text: " walk to the classrooms every day." }
+            ],
+            speech: "The campus of my university was so large that it took twenty minutes for me to walk to the classrooms every day.",
+            explanation: "時間に関する表現のため主語には非人称のitを用いる。"
+          },
+          {
+            id: 4,
+            ja: "大雪により、今日はお店が閉まっている。",
+            choices: ["is", "to", "due", "snow", "heavy", "closed"],
+            segments: [
+              { text: "The store " },
+              { type: "input", answer: "is closed due to heavy snow", width: "full" },
+              { text: " today." }
+            ],
+            speech: "The store is closed due to heavy snow today.",
+            explanation: "closeは「〈店など〉を(一時的に) 閉める」という意味の他動詞で、be closedで「閉まっている」という意味。「開いている」という場合、形容詞のopen を用いてbe open とする点に注意する。"
+          }
+        ]
+      }
+    };
+
+    // --- ユーティリティ ---
+    const normalizeString = (str) => {
+      if (!str) return "";
+      return str.replace(/[.,!?()]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+    };
+
+    const checkAnswer = (input, answerObj) => {
+      const normalizedInput = normalizeString(input);
+      const acceptedAnswers = [answerObj.answer, ...(answerObj.accept || [])].map(normalizeString);
+      return acceptedAnswers.includes(normalizedInput);
+    };
+
+    // --- コンポーネント ---
+    const QuestionCard = ({ q, sectionKey, index }) => {
+      const [inputs, setInputs] = useState({});
+      const [showAnswer, setShowAnswer] = useState(false);
+      const [isSpeaking, setIsSpeaking] = useState(false);
+
+      const handleInputChange = (idx, value) => {
+        setInputs(prev => ({ ...prev, [idx]: value }));
+      };
+
+      const playAudio = () => {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(q.speech);
+          utterance.lang = 'en-US';
+          utterance.rate = 0.9;
+          utterance.onstart = () => setIsSpeaking(true);
+          utterance.onend = () => setIsSpeaking(false);
+          utterance.onerror = () => setIsSpeaking(false);
+          window.speechSynthesis.speak(utterance);
+        } else {
+          alert("お使いのブラウザは音声再生に対応していません。");
+        }
+      };
+
+      return (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-md mb-8">
+          <div className="bg-indigo-50/50 p-5 border-b border-indigo-100/50 flex items-start justify-between">
+            <div className="flex gap-4">
+              <span className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg">
+                {index + 1}
+              </span>
+              <p className="font-medium text-gray-800 leading-relaxed pt-1 text-xl md:text-2xl">
+                {q.ja}
+              </p>
+            </div>
+            <button
+              onClick={playAudio}
+              className={`p-3 rounded-full transition-colors flex-shrink-0 ${isSpeaking ? 'bg-indigo-200 text-indigo-700 animate-pulse' : 'bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-600'}`}
+              title="音声を再生"
+            >
+              <Volume2 size={24} />
+            </button>
+          </div>
+
+          <div className="p-6 md:p-8">
+            
+            {/* 並べ替えの選択肢 */}
+            {q.choices && (
+              <div className="mb-8 bg-indigo-50/50 p-5 rounded-xl border border-indigo-100">
+                <div className="flex items-center gap-2 text-base font-bold text-indigo-800 mb-3">
+                  <ListPlus size={20} />
+                  選択肢
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {q.choices.map((choice, i) => (
+                    <div 
+                      key={i} 
+                      className="px-4 py-2 bg-white text-indigo-950 border border-indigo-200 rounded-lg shadow-sm text-[22px] font-medium"
+                      style={{ fontFamily: "'Times New Roman', Times, serif" }}
+                    >
+                      {choice}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 指定語句 */}
+            {q.hints && (
+              <div className="mb-6 text-lg text-gray-700 bg-amber-50/50 p-4 rounded-lg flex items-center gap-2 border border-amber-100 font-medium">
+                <Info size={22} className="text-amber-500" />
+                指定語句: <span className="font-serif tracking-wide">{q.hints}</span>
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-y-4 gap-x-2 text-[22px] md:text-[28px]" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
+              {q.segments.map((seg, idx) => {
+                if (seg.type === 'input') {
+                  const val = inputs[idx] || "";
+                  const isCorrect = checkAnswer(val, seg);
+                  const isTyping = val.length > 0;
+                  
+                  let inputClass = "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-gray-800";
+                  if (isCorrect) {
+                    inputClass = "border-green-500 bg-green-50 text-green-700 focus:ring-green-500 font-medium";
+                  } else if (isTyping) {
+                    inputClass = "border-amber-300 bg-amber-50 text-amber-800 focus:ring-amber-400";
+                  }
+
+                  let widthClass = "w-40 md:w-56";
+                  if (seg.width === 'full') widthClass = "w-full md:w-4/5";
+                  if (seg.width === 'short') widthClass = "w-16 md:w-20";
+
+                  return (
+                    <div key={idx} className={`relative flex items-center ${seg.width === 'full' ? 'w-full my-3' : ''}`}>
+                      {seg.prefix && <span className="mr-2 text-gray-500">{seg.prefix}</span>}
+                      <input
+                        type="text"
+                        value={val}
+                        onChange={(e) => handleInputChange(idx, e.target.value)}
+                        placeholder={seg.width === 'full' ? "ここに入力..." : ""}
+                        className={`block ${widthClass} px-3 py-2 rounded-md border-2 shadow-sm transition-colors focus:outline-none focus:ring-2 ${inputClass} text-[22px] md:text-[28px]`}
+                        style={{ fontFamily: "'Times New Roman', Times, serif" }}
+                      />
+                      {isCorrect && (
+                        <span className="absolute right-3 text-green-500 pointer-events-none">
+                          <CheckCircle size={22} />
+                        </span>
+                      )}
+                    </div>
+                  );
+                }
+                return <span key={idx} className="text-gray-800 whitespace-pre-wrap leading-loose">{seg.text}</span>;
+              })}
+            </div>
+
+            <div className="mt-8 flex justify-end">
+              <button
+                onClick={() => setShowAnswer(!showAnswer)}
+                className={`flex items-center gap-2 px-5 py-3 rounded-lg text-base md:text-lg font-medium transition-colors ${
+                  showAnswer 
+                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
+                    : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                }`}
+              >
+                {showAnswer ? <><EyeOff size={20} /> 解答を隠す</> : <><Eye size={20} /> 解答・解説を見る</>}
+              </button>
+            </div>
+
+            {showAnswer && (
+              <div className="mt-6 p-6 bg-blue-50 border-2 border-blue-100 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                <h4 className="text-sm font-bold text-blue-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <CheckCircle size={18} /> Correct Answer
+                </h4>
+                <p className="text-[22px] md:text-[28px] text-blue-900 mb-4 leading-relaxed" style={{ fontFamily: "'Times New Roman', Times, serif" }}>{q.speech}</p>
+                
+                {q.explanation && (
+                  <div className="pt-4 border-t-2 border-blue-200/60">
+                    <h4 className="text-sm font-bold text-blue-800 uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <BookOpen size={18} /> Explanation
+                    </h4>
+                    <p className="text-base md:text-lg text-blue-800/90 leading-relaxed">{q.explanation}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const App = () => {
+      const [activeSection, setActiveSection] = useState('A');
+      const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+      const sectionKeys = Object.keys(quizData);
+      const currentSectionData = quizData[activeSection];
+
+      return (
+        <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900">
+          
+          {/* Mobile Header */}
+          <div className="md:hidden bg-indigo-600 text-white p-4 flex items-center justify-between shadow-md z-20">
+            <div className="font-bold text-xl tracking-tight">Genius 2 / Unit 1</div>
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-indigo-700 rounded-md transition-colors">
+              {isSidebarOpen ? <XIcon size={28} /> : <Menu size={28} />}
+            </button>
+          </div>
+
+          {/* Sidebar */}
+          <aside className={`
+            fixed md:static inset-y-0 left-0 w-72 bg-indigo-800 text-indigo-100 flex flex-col shadow-xl z-10 
+            transition-transform duration-300 ease-in-out
+            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          `}>
+            <div className="p-6 hidden md:block">
+              <h1 className="text-3xl font-black text-white tracking-tight leading-tight">Genius 2<br/><span className="text-indigo-300 font-semibold text-xl">Unit 1 Workbook</span></h1>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto py-4 px-4 space-y-2 mt-20 md:mt-0">
+              <p className="px-3 text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">Sections</p>
+              {sectionKeys.map(key => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setActiveSection(key);
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between text-left px-5 py-4 rounded-xl text-lg transition-all duration-200 ${
+                    activeSection === key 
+                      ? 'bg-white text-indigo-800 shadow-md font-bold' 
+                      : 'hover:bg-indigo-700 hover:text-white font-medium'
+                  }`}
+                >
+                  <span>Section {key.replace('_', ' ')}</span>
+                  {activeSection === key && <ChevronRight size={22} className="text-indigo-500" />}
+                </button>
+              ))}
+            </div>
+            
+            <div className="p-5 bg-indigo-900/50 text-sm text-indigo-300/70 text-center">
+              English Logic and Expression II
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 relative overflow-y-auto h-screen">
+            {/* Decorative background */}
+            <div className="absolute top-0 left-0 w-full h-72 bg-indigo-600 md:bg-indigo-600/5 -z-10 transition-colors"></div>
+
+            <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 md:py-12">
+              <header className="mb-10 md:mb-14 pt-4 md:pt-0">
+                <span className="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-800 rounded-full text-base font-bold mb-4 md:hidden">Section {activeSection.replace('_', ' ')}</span>
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white md:text-indigo-900 drop-shadow-sm md:drop-shadow-none leading-relaxed">
+                  {currentSectionData.title}
+                </h2>
+              </header>
+
+              <div className="space-y-8">
+                {currentSectionData.questions.map((q, index) => (
+                  <QuestionCard key={q.id} q={q} sectionKey={activeSection} index={index} />
+                ))}
+              </div>
+              
+              {/* Bottom Navigation */}
+              <div className="mt-16 flex justify-between items-center border-t border-gray-200 pt-8 pb-24 md:pb-8">
+                <button 
+                  disabled={sectionKeys.indexOf(activeSection) === 0}
+                  onClick={() => setActiveSection(sectionKeys[sectionKeys.indexOf(activeSection) - 1])}
+                  className="px-6 py-3 text-lg text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-indigo-50 rounded-lg transition-colors font-medium"
+                >
+                  ← 前のセクション
+                </button>
+                <button 
+                  disabled={sectionKeys.indexOf(activeSection) === sectionKeys.length - 1}
+                  onClick={() => setActiveSection(sectionKeys[sectionKeys.indexOf(activeSection) + 1])}
+                  className="px-6 py-3 text-lg bg-indigo-600 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-indigo-700 rounded-lg shadow-md transition-colors font-medium"
+                >
+                  次のセクション →
+                </button>
+              </div>
+            </div>
+          </main>
+          
+          {/* Overlay for mobile sidebar */}
+          {isSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/50 z-0 md:hidden" 
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
